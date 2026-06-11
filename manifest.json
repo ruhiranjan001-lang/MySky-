@@ -1,17 +1,9 @@
 {
   "short_name": "MySky",
   "name": "MySky: Your Personal Sky",
-  "icons": [
-    {
-      "src": "https://github.io",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "any maskable"
-    }
-  ],
-  "start_url": "/MySky-/",
-  "background_color": "#0f0c20",
-  "theme_color": "#0f0c20",
+  "start_url": ".",
+  "background_color": "#0a0718",
+  "theme_color": "#0a0718",
   "display": "standalone",
   "orientation": "portrait"
 }
