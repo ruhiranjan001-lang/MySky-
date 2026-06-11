@@ -404,6 +404,8 @@
 
 <script>
 // ── State ──────────────────────────────────────────────────────────────────
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+  
 const state = {
   mood: null,
   ventContent: "",
