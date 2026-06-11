@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0718" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MindSpace" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>MindSpace 🌙</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%;overflow:hidden;background:#0a0718}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+    ::-webkit-scrollbar{display:none}
+    *{scrollbar-width:none}
+    button,textarea,input{font-family:inherit}
+    textarea{resize:none}
+
+    /* ── App Shell ── */
+    #app{
+      width:100%;height:100%;height:100dvh;
+      background:linear-gradient(160deg,#0a0718 0%,#110d2e 40%,#0c1a2e 100%);
+      display:flex;justify-content:center;position:relative;overflow:hidden
+    }
+    .orb1{position:fixed;width:400px;height:400px;border-radius:50%;background:#4f1d96;opacity:.1;top:-10%;left:-15%;pointer-events:none}
+    .orb2{position:fixed;width:350px;height:350px;border-radius:50%;background:#0e4d6e;opacity:.1;bottom:5%;right:-10%;pointer-events:none}
+    #frame{width:100%;max-width:430px;height:100%;display:flex;flex-direction:column;position:relative}
+
+    /* ── Screens ── */
+    .screen{display:none;flex:1;flex-direction:column;overflow:hidden;animation:fadeIn .35s ease}
+    .screen.active{display:flex}
+
+    /* ── Splash ── */
+    #splash{
+      position:fixed;inset:0;z-index:9999;
+      background:linear-gradient(160deg,#0a0718 0%,#110d2e 40%,#0c1a2e 100%);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      transition:opacity .6s ease
+    }
+    #splash.hide{opacity:0;pointer-events:none}
+    .splash-emoji{font-size:64px;margin-bottom:16px;animation:float 2s ease-in-out infinite}
+    .splash-title{color:#e2e8f0;font-size:26px;font-weight:bold;margin-bottom:8px}
+    .splash-sub{color:#64748b;font-size:14px}
+    .splash-dots{display:flex;gap:8px;margin-top:32px}
+    .splash-dot{width:8px;height:8px;border-radius:50%;background:#7c3aed;animation:pulse 1.2s ease-in-out infinite}
+    .splash-dot:nth-child(2){animation-delay:.2s}
+    .splash-dot:nth-child(3){animation-delay:.4s}
+
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    @keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ── Shared ── */
+    .page{flex:1;overflow-y:auto;padding:20px 20px 40px;display:flex;flex-direction:column;align-items:center}
+    .back-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:8px 16px;color:#64748b;cursor:pointer;font-size:13px;align-self:flex-start;margin-bottom:20px}
+    .grad-btn{width:100%;max-width:380px;padding:18px;border-radius:20px;border:none;cursor:pointer;background:linear-gradient(135deg,#4f1d96,#7c3aed,#9d4edd);color:white;font-size:16px;font-weight:bold}
+    .dim-btn{width:100%;max-width:380px;padding:18px;border-radius:20px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);color:#64748b;font-size:16px;font-weight:bold;text-align:center}
+    .card{background:#1e1b4b;border:1px solid #4c1d95;border-radius:20px;padding:18px 20px;margin-bottom:14px;cursor:pointer;text-align:left;width:100%;max-width:380px;border:none}
+    .input-box{width:100%;max-width:380px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:24px;padding:20px;margin-bottom:14px}
+    .the-textarea{width:100%;background:transparent;border:none;outline:none;color:#e2e8f0;font-size:15px;line-height:1.6;min-height:140px}/* ── Home ── */
+    #home{align-items:center;justify-content:center;padding:24px}
+    .home-card{background:#1e1b4b;border:1px solid #4c1d95;border-radius:20px;padding:18px 20px;margin-bottom:14px;cursor:pointer;text-align:left;width:100%;max-width:380px;border:none}
+    .home-card:active{opacity:.8}
+    .home-card-title{color:#e2e8f0;font-size:17px;font-weight:bold;margin-bottom:4px}
+    .home-card-sub{color:#a5b4fc;font-size:12px}
+
+    /* ── Mood ── */
+    .mood-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;width:100%;max-width:360px;margin-bottom:28px}
+    .mood-btn{width:29%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center}
+    .mood-btn.sel{background:rgba(124,58,237,.15);border-color:#7c3aed}
+    .mood-emoji{font-size:26px;margin-bottom:4px}
+    .mood-label{color:#94a3b8;font-size:12px}
+    .mood-actions{display:flex;gap:12px;width:100%;max-width:360px}
+
+    /* ── Vent ── */
+    .prompt-chip{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:20px;padding:7px 13px;color:#64748b;font-size:12px;cursor:pointer;margin:4px}
+    .breathe-box{width:100%;max-width:380px;background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.15);border-radius:16px;padding:14px;margin-bottom:16px;text-align:center}
+    .enc-bar{width:100%;max-width:380px;border-radius:12px;padding:10px 16px;margin-bottom:14px;border-left:3px solid}
+
+    /* ── Response ── */
+    .ai-box{width:100%;max-width:380px;background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.3);border-radius:20px;padding:20px;margin-bottom:20px}
+    .affirmation-box{width:100%;max-width:380px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:20px;margin-bottom:20px}
+    .crisis-box{width:100%;max-width:380px;background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.15);border-radius:16px;padding:16px;margin-bottom:24px;text-align:center}
+
+    /* ── Journal ── */
+    .tab-bar{display:flex;width:100%;max-width:380px;background:rgba(255,255,255,.03);border-radius:16px;padding:4px;margin-bottom:20px}
+    .tab-btn{flex:1;padding:10px 0;border-radius:14px;border:none;cursor:pointer;background:transparent;color:#64748b;font-weight:600;font-size:13px}
+    .tab-btn.active{background:#1e1b4b;color:white}
+    .journal-entry{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:18px;margin-bottom:12px}
+
+    /* ── Guidance ── */
+    .guidance-topic{width:100%;max-width:380px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;margin-bottom:14px;overflow:hidden}
+    .topic-header{width:100%;padding:18px;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+    .topic-paths{border-top:1px solid rgba(255,255,255,.06);padding:12px 18px 16px}
+    .path-item{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);color:#94a3b8;font-size:13px;line-height:1.6}
+
+    /* ── Advisor Chat ── */
+    #advisor{flex-direction:column;height:100%}
+    .chat-header{padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+    .chat-messages{flex:1;overflow-y:auto;padding:16px 16px 8px}
+    .chat-input-bar{padding:12px 16px 24px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:10px;flex-shrink:0}
+    .msg-wrap{display:flex;margin-bottom:12px;align-items:flex-end;gap:8px}
+    .msg-wrap.user{justify-content:flex-end}
+    .msg-wrap.assistant{justify-content:flex-start}
+    .msg-bubble{max-width:78%;padding:12px 16px;font-size:14px;line-height:1.7;color:#e2e8f0}
+    .msg-bubble.user{border-radius:18px 18px 4px 18px;background:#7c3aed}
+    .msg-bubble.assistant{border-radius:18px 18px 18px 4px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+    .typing-dots{display:flex;gap:4px;padding:4px 0}
+    .typing-dot{width:6px;height:6px;border-radius:50%;background:#7c3aed;animation:pulse 1.2s ease-in-out infinite}
+    .chat-input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:12px 18px;color:#e2e8f0;font-size:14px;outline:none}
+    .send-btn{width:46px;height:46px;border-radius:50%;border:none;flex-shrink:0;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:white;transition:background .2s}
+    .send-btn.active{background:#7c3aed;cursor:pointer}
+    .send-btn.inactive{background:rgba(255,255,255,.05);cursor:default}
+
+    /* ── Loading dots inline ── */
+    .loading-dots{display:inline-flex;gap:4px;margin-left:8px}
+    .loading-dot{width:6px;height:6px;border-radius:50%;background:#7c3aed;animation:pulse 1.2s ease-in-out infinite;display:inline-block}
+    /* ── Angel Animation ── */
+    .angel-wrap{position:relative;width:160px;height:170px;margin-bottom:4px;flex-shrink:0}
+    .angel-svg{animation:angelFloat 3s ease-in-out infinite;filter:drop-shadow(0 0 18px rgba(167,139,250,0.5))}
+    @keyframes angelFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-12px) rotate(2deg)}}
+    .wand-sparkle{animation:wandGlow 1.5s ease-in-out infinite alternate}
+    @keyframes wandGlow{0%{opacity:.6;filter:drop-shadow(0 0 4px #fde68a)}100%{opacity:1;filter:drop-shadow(0 0 12px #fde68a) drop-shadow(0 0 20px #f9a8d4)}}
+    .wings{animation:wingFlap 2s ease-in-out infinite}
+    @keyframes wingFlap{0%,100%{transform:scaleX(1)}50%{transform:scaleX(1.08)}}
+    .glitter{position:absolute;pointer-events:none;border-radius:50%;animation:glitterFly var(--dur,2s) ease-out var(--delay,0s) infinite}
+    @keyframes glitterFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx,20px),var(--ty,-60px)) scale(0);opacity:0}}
+  </style>
+</head>
+<body><!-- Splash -->
+<div id="splash">
+  <div class="splash-emoji">🌙</div>
+  <div class="splash-title">MindSpace</div>
+  <div class="splash-sub">Your safe space, student 💜</div>
+  <div class="splash-dots">
+    <div class="splash-dot"></div>
+    <div class="splash-dot"></div>
+    <div class="splash-dot"></div>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <div class="orb1"></div>
+  <div class="orb2"></div>
+  <div id="frame">
+
+    <!-- HOME -->
+    <div id="home" class="screen" style="align-items:center;justify-content:center;padding:24px;overflow-y:auto">
+
+      <!-- Angel Animation -->
+      <div class="angel-wrap" id="angelWrap">
+        <svg class="angel-svg" width="160" height="170" viewBox="0 0 160 170" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Wings -->
+          <g class="wings" style="transform-origin:80px 80px">
+            <!-- Left wing -->
+            <ellipse cx="38" cy="78" rx="36" ry="18" fill="url(#wingL)" opacity="0.85"/>
+            <ellipse cx="28" cy="92" rx="22" ry="12" fill="url(#wingL)" opacity="0.6"/>
+            <!-- Right wing -->
+            <ellipse cx="122" cy="78" rx="36" ry="18" fill="url(#wingR)" opacity="0.85"/>
+            <ellipse cx="132" cy="92" rx="22" ry="12" fill="url(#wingR)" opacity="0.6"/>
+          </g>
+          <!-- Gown / body -->
+          <ellipse cx="80" cy="118" rx="24" ry="34" fill="url(#gown)"/>
+          <!-- Gown shimmer -->
+          <ellipse cx="80" cy="110" rx="12" ry="20" fill="white" opacity="0.08"/>
+          <!-- Neck -->
+          <rect x="73" y="88" width="14" height="12" rx="6" fill="#fce4d6"/>
+          <!-- Head -->
+          <ellipse cx="80" cy="72" rx="22" ry="24" fill="#fce4d6"/>
+          <!-- Hair -->
+          <ellipse cx="80" cy="58" rx="22" ry="14" fill="url(#hair)"/>
+          <ellipse cx="60" cy="72" rx="8" ry="18" fill="url(#hair)" opacity="0.9"/>
+          <ellipse cx="100" cy="72" rx="8" ry="18" fill="url(#hair)" opacity="0.9"/>
+          <!-- Eyes -->
+          <ellipse cx="72" cy="72" rx="3.5" ry="4" fill="#3b1f6e"/>
+          <ellipse cx="88" cy="72" rx="3.5" ry="4" fill="#3b1f6e"/>
+          <circle cx="73.5" cy="70.5" r="1.2" fill="white"/>
+          <circle cx="89.5" cy="70.5" r="1.2" fill="white"/>
+          <!-- Blush -->
+          <ellipse cx="66" cy="78" rx="5" ry="3" fill="#f9a8d4" opacity="0.5"/>
+          <ellipse cx="94" cy="78" rx="5" ry="3" fill="#f9a8d4" opacity="0.5"/>
+          <!-- Smile -->
+          <path d="M74 82 Q80 87 86 82" stroke="#c084fc" stroke-width="2" stroke-linecap="round" fill="none"/>
+          <!-- Halo -->
+          <ellipse cx="80" cy="50" rx="20" ry="5" stroke="url(#halo)" stroke-width="3" fill="none" opacity="0.9"/>
+          <!-- Arm holding wand -->
+          <path d="M96 100 Q112 90 120 76" stroke="#fce4d6" stroke-width="7" stroke-linecap="round" fill="none"/>
+          <!-- Wand stick -->
+          <line x1="118" y1="78" x2="138" y2="52" stroke="#c4b5fd" stroke-width="3" stroke-linecap="round"/>
+          <!-- Wand star tip -->
+          <g class="wand-sparkle">
+            <polygon points="138,42 140,50 148,50 142,55 144,63 138,58 132,63 134,55 128,50 136,50" fill="#fde68a"/>
+            <circle cx="138" cy="52" r="6" fill="#fde68a" opacity="0.4"/>
+          </g>
+          <!-- Left arm gentle curve -->
+          <path d="M64 100 Q50 108 44 118" stroke="#fce4d6" stroke-width="7" stroke-linecap="round" fill="none"/>
+          <!-- Heart in left hand -->
+          <text x="36" y="128" font-size="14" text-anchor="middle">🤍</text>
+
+          <defs>
+            <linearGradient id="wingL" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#e9d5ff"/>
+              <stop offset="100%" stop-color="#c4b5fd" stop-opacity="0.3"/>
+            </linearGradient><linearGradient id="wingR" x1="1" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#e9d5ff"/>
+              <stop offset="100%" stop-color="#c4b5fd" stop-opacity="0.3"/>
+            </linearGradient>
+            <linearGradient id="gown" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#a78bfa"/>
+              <stop offset="100%" stop-color="#6d28d9"/>
+            </linearGradient>
+            <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#7c3aed"/>
+              <stop offset="100%" stop-color="#4c1d95"/>
+            </linearGradient>
+            <linearGradient id="halo" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#fde68a"/>
+              <stop offset="50%" stop-color="#f9a8d4"/>
+              <stop offset="100%" stop-color="#fde68a"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <!-- Glitter container (filled by JS) -->
+        <div id="glitterContainer" style="position:absolute;inset:0;pointer-events:none;overflow:visible"></div>
+      </div>
+
+      <div style="color:#e2e8f0;font-size:22px;font-weight:bold;text-align:center;margin-bottom:8px">Hey, student 👋</div>
+      <div style="color:#64748b;font-size:13px;text-align:center;line-height:1.7;margin-bottom:6px">Whatever you're feeling right now —<br>this is a safe space.</div>
+      <div style="color:#a78bfa;font-size:12px;text-align:center;margin-bottom:24px;font-style:italic">Ruhi is here for you 🤍</div>
+      <button class="home-card" onclick="go('mood')">
+        <div class="home-card-title">💜 Vent Freely</div>
+        <div class="home-card-sub">Say what's on your mind anonymously</div>
+      </button>
+      <button class="home-card" onclick="go('guidance')">
+        <div class="home-card-title">📚 Get Guidance</div>
+        <div class="home-card-sub">Career paths, next steps &amp; resources</div>
+      </button>
+      <button class="home-card" onclick="go('advisor')">
+        <div class="home-card-title">🧭 Talk to Ruhi</div>
+        <div class="home-card-sub">She'll help you find your path 🌙</div>
+      </button>
+      <button class="home-card" onclick="go('journal')">
+        <div class="home-card-title">📓 My Journal</div>
+        <div class="home-card-sub">Keep your personal private thoughts</div>
+      </button>
+    </div>
+
+    <!-- MOOD PICKER -->
+    <div id="mood" class="screen" style="align-items:center;justify-content:center;padding:24px">
+      <div style="color:#e2e8f0;font-size:20px;font-weight:bold;margin-bottom:6px;text-align:center">How are you feeling?</div>
+      <div style="color:#64748b;font-size:13px;margin-bottom:24px;text-align:center">Select a mood to start venting.</div>
+      <div class="mood-grid" id="moodGrid"></div>
+      <div class="mood-actions">
+        <button onclick="go('home')" style="width:90px;padding:16px;border-radius:16px;border:1px solid rgba(255,255,255,.1);background:transparent;color:#64748b;font-weight:600;cursor:pointer">Back</button>
+        <button id="moodContinue" onclick="moodContinue()" style="flex:1;padding:16px;border-radius:16px;border:none;cursor:default;background:rgba(255,255,255,.04);color:#64748b;font-weight:bold;font-size:15px;opacity:.5">Continue →</button>
+      </div>
+    </div>
+
+    <!-- VENT -->
+    <div id="vent" class="screen">
+      <div class="page" id="ventPage">
+        <div style="width:100%;max-width:380px">
+          <button class="back-btn" onclick="go('mood')">← Back</button>
+        </div>
+        <div style="text-align:center;margin-bottom:20px;width:100%;max-width:380px">
+          <div style="font-size:36px;margin-bottom:8px">🌙</div>
+          <div style="color:#e2e8f0;font-size:20px;font-weight:bold;margin-bottom:6px">This is your safe space</div>
+          <div style="color:#64748b;font-size:13px;line-height:1.7">Write what's weighing on your heart.<br>No one is watching. No one will judge. 🤍</div>
+          <div id="moodBadge" style="margin-top:10px;font-size:20px"></div>
+        </div>
+        <div class="input-box">
+          <textarea id="ventText" class="the-textarea" placeholder="I don't know what to do after 12th..." maxlength="1000" oninput="ventUpdate()"></textarea>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(255,255,255,.05);padding-top:8px;margin-top:6px">
+            <span id="ventWords" style="color:#64748b;font-size:11px">0 words</span>
+            <span id="ventChars" style="color:#64748b;font-size:11px">0/1000</span>
+          </div>
+        </div>
+        <div id="ventEnc" style="display:none" class="enc-bar"></div>
+        <div id="ventPrompts" style="width:100%;max-width:380px;margin-bottom:16px">
+          <div style="color:#64748b;font-size:11px;text-transform:uppercase;margin-bottom:8px">Not sure where to start?</div>
+          <div style="display:flex;flex-wrap:wrap">
+            <button class="prompt-chip" onclick="usePrompt('I feel lost after 12th...')">I feel lost after 12th...</button>
+            <button class="prompt-chip" onclick="usePrompt('My parents don\'t understand me...')">My parents don't understand me...</button>
+            <button class="prompt-chip" onclick="usePrompt('I don\'t know my passion...')">I don't know my passion...</button>
+            <button class="prompt-chip" onclick="usePrompt('Everyone else seems sorted...')">Everyone else seems sorted...</button>
+          </div>
+        </div>
+        <button id="breatheTrigger" onclick="showBreathe()" style="background:transparent;border:none;color:#64748b;font-size:12px;font-style:italic;cursor:pointer;padding:4px 0;margin-bottom:16px;width:100%;max-width:380px;text-align:left">🫧 Feeling overwhelmed? Try a quick breathe</button>
+        <div id="breatheBox" class="breathe-box" style="display:none">
+          <div id="breatheText" style="color:#93c5fd;font-size:16px;font-style:italic;margin-bottom:8px">Breathe in... 🫁</div>
+          <button onclick="hideBreathe()" style="background:transparent;border:none;color:#64748b;font-size:11px;cursor:pointer">✕ close</button>
+        </div>
+        <div id="ventSubmitWrap" style="width:100%;max-width:380px">
+          <div class="dim-btn">Start writing...</div>
+        </div>
+        <div style="color:#1e2d3d;font-size:11px;text-align:center;margin-top:14px">🔒 Anonymous · Private · Safe</div>
+      </div>
+            </div><!-- RESPONSE -->
+    <div id="response" class="screen">
+      <div class="page">
+        <div style="font-size:60px;margin-bottom:16px;text-align:center">💜</div>
+        <div style="color:#e2e8f0;font-size:26px;font-weight:bold;text-align:center;margin-bottom:8px">We hear you.</div>
+        <div style="color:#64748b;font-size:13px;text-align:center;line-height:1.7;margin-bottom:24px">Thank you for being brave enough to say it out loud.<br>That took courage. 🤍</div>
+        <div class="ai-box">
+          <div style="color:#a78bfa;font-size:11px;font-weight:600;text-transform:uppercase;margin-bottom:10px;letter-spacing:.5px">🤍 Ruhi says</div>
+          <div id="aiReply" style="color:#e2e8f0;font-size:14px;line-height:1.8">
+            <span style="color:#a5b4fc;font-size:13px;font-style:italic">Ruhi is thinking about you...</span>
+            <span class="loading-dots"><span class="loading-dot" style="animation-delay:0s"></span><span class="loading-dot" style="animation-delay:.2s"></span><span class="loading-dot" style="animation-delay:.4s"></span></span>
+          </div>
+        </div>
+        <div class="affirmation-box">
+          <div style="color:#a78bfa;font-size:11px;font-weight:600;text-transform:uppercase;margin-bottom:10px;letter-spacing:.5px">✨ A reminder for you</div>
+          <div id="affirmation" style="color:#e2e8f0;font-size:15px;font-style:italic;line-height:1.8;text-align:center"></div>
+        </div>
+        <div class="crisis-box">
+          <div style="color:#94a3b8;font-size:12px;line-height:1.8">
+            If things ever feel too heavy, iCall India is here 📞<br>
+            <span style="color:#f87171;font-weight:bold;font-size:14px">9152987821</span><br>
+            Free, confidential, student-friendly.
+          </div>
+        </div>
+        <button class="grad-btn" onclick="go('journal')" style="background:linear-gradient(135deg,#1e1b4b,#2d2070);margin-bottom:12px">📓 Write in my Journal</button>
+        <button onclick="go('home')" style="width:100%;max-width:380px;padding:17px;border-radius:18px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:#64748b;font-size:15px;font-weight:600;cursor:pointer">← Back to Home</button>
+      </div>
+    </div>
+
+    <!-- JOURNAL -->
+    <div id="journal" class="screen">
+      <div class="page">
+        <div style="width:100%;max-width:380px">
+          <button class="back-btn" onclick="go('home')">← Back</button>
+        </div>
+        <div style="font-size:32px;margin-bottom:6px">📓</div>
+        <div style="color:#e2e8f0;font-size:20px;font-weight:bold;margin-bottom:4px">My Journal</div>
+        <div style="color:#64748b;font-size:13px;margin-bottom:20px">Your private space. Only you can see this. 🔒</div>
+        <div class="tab-bar">
+          <button class="tab-btn active" id="tabWrite" onclick="journalTab('write')">✏️ Write</button>
+          <button class="tab-btn" id="tabEntries" onclick="journalTab('entries')">📋 Entries</button>
+        </div>
+        <div id="journalWrite" style="width:100%;max-width:380px">
+          <div class="input-box">
+            <textarea id="journalText" class="the-textarea" placeholder="What's on your mind today..." maxlength="2000" style="min-height:180px" oninput="journalUpdate()"></textarea>
+            <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(255,255,255,.05);padding-top:8px">
+              <span id="journalWords" style="color:#64748b;font-size:11px">0 words</span>
+              <span id="journalChars" style="color:#64748b;font-size:11px">0/2000</span>
+            </div>
+          </div>
+          <div id="journalSaveBtnWrap"><div class="dim-btn">Start writing to save...</div></div>
+          <div style="color:#1e2d3d;font-size:11px;text-align:center;margin-top:14px">🔒 Saved locally · Private · Only visible to you</div>
+        </div>
+        <div id="journalEntries" style="width:100%;max-width:380px;display:none"></div>
+      </div>
+    </div>
+
+    <!-- GUIDANCE -->
+    <div id="guidance" class="screen">
+      <div class="page">
+        <div style="width:100%;max-width:380px">
+          <button class="back-btn" onclick="go('home')">← Back</button>
+        </div>
+        <div style="font-size:32px;margin-bottom:6px">📚</div>
+        <div style="color:#e2e8f0;font-size:20px;font-weight:bold;margin-bottom:4px">Get Guidance</div>
+        <div style="color:#64748b;font-size:13px;margin-bottom:24px;text-align:center;line-height:1.6">Real paths you can take. 🌿</div>
+        <div id="guidanceTopics"></div>
+        <button onclick="go('advisor')" class="grad-btn" style="background:linear-gradient(135deg,#1e1b4b,#2d2070);margin-top:6px">🌙 Talk to Ruhi →</button>
+      </div>
+    </div>
+
+    <!-- ADVISOR -->
+    <div id="advisor" class="screen">
+      <div class="chat-header">
+        <button class="back-btn" onclick="go('home')" style="margin-bottom:10px">← Back</button>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:26px">🌙</span>
+          <div>
+            <div style="color:#e2e8f0;font-size:16px;font-weight:bold">Ruhi</div>
+            <div style="color:#64748b;font-size:11px">Here to guide you, always 🤍</div>
+          </div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div id="advisorStart" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:24px;text-align:center">
+          <div style="font-size:48px;margin-bottom:16px">🌙</div>
+          <div style="color:#e2e8f0;font-size:18px;font-weight:bold;margin-bottom:8px">Hey, I'm Ruhi 🤍</div>
+          <div style="color:#64748b;font-size:13px;line-height:1.7;margin-bottom:28px">I'll ask you a few gentle questions about what you love, then help you find a path that truly feels like yours — not just what everyone else is doing.</div>
+          <button onclick="startAdvisor()" style="padding:16px 32px;border-radius:20px;border:none;cursor:pointer;background:linear-gradient(135deg,#4f1d96,#7c3aed);color:white;font-size:16px;font-weight:bold">Let's find your path 🌙</button>
+        </div>
+        <div id="chatLog" style="display:none"></div>
+      </div>
+      <div class="chat-input-bar" id="advisorInputBar" style="display:none">
+        <input id="chatInput" class="chat-input" type="text" placeholder="Type your reply..." onkeydown="if(event.key==='Enter')sendMsg()" oninput="updateSendBtn()">
+        <button id="sendBtn" class="send-btn inactive" onclick="sendMsg()">→</button>
+      </div>
+    </div>
+
+  </div><!-- /frame -->
+</div><!-- /app -->
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const state = {
+  mood: null,
+  ventContent: "",
+  breatheInterval: null,
+  breatheStep: 0,
+  phInterval: null,
+  phIndex: 0,
+  chatHistory: [],
+  chatLoading: false,
+  guidanceExpanded: null,
+  journalView: "write",
+};
+
+const JOURNAL_KEY = "mindspace_journal";
+const placeholders = [
+  "I don't know what to do after 12th...",
+  "Everyone has a plan except me...",
+  "My parents want engineering but I hate it...",
+  "I feel so lost and confused right now...",
+  "I failed and I don't know how to face anyone...",
+];
+const affirmations = [
+  "You are not behind. You are on your own path. 🌿",
+  "Confusion is the beginning of clarity. Keep going. 💙",
+  "One step at a time is still moving forward. 🌸",
+  "You don't need to have it all figured out right now. 🤍",
+  "Feeling lost just means you're about to find something real. 🌟",
+  "Your story isn't over. It's just getting started. 💜",
+  "The fact that you care this much? That's your superpower. ✨",
+];
+const moods = [
+  {emoji:"😔",label:"Sad"},{emoji:"😰",label:"Anxious"},{emoji:"🥱",label:"Tired"},
+  {emoji:"🤯",label:"Stressed"},{emoji:"😡",label:"Angry"},{emoji:"🥺",label:"Lonely"},
+  {emoji:"🤔",label:"Confused"},{emoji:"🫠",label:"Overwhelmed"},{emoji:"😶",label:"Numb"},
+];
+const guidanceTopics = [
+  { emoji:"🎓", title:"After 12th — Science", desc:"Engineering, Medicine, Pure Sciences & more",
+    paths:["🏥 MBBS / BDS — Medicine via NEET","💻 B.Tech / BE — Engineering via JEE","🔬 B.Sc — Physics, Chemistry, Biology","✈️ B.Sc Aviation / Pilot Training","🌿 B.Sc Agriculture / Forestry","💊 B.Pharm — Pharmacy","🧬 Biotech / Bioinformatics","📐 B.Arch — Architecture via NATA"] },
+  { emoji:"📊", title:"After 12th — Commerce", desc:"Finance, Business, Law, CA & more",
+    paths:["📈 B.Com / B.Com Hons","🏦 CA — Chartered Accountancy","💼 BBA / BBM — Business Admin","⚖️ BA LLB / BBA LLB — Law","📉 Economics Hons","🌐 BMS — Management Studies","📋 CS — Company Secretary","🏨 BHM — Hotel Management"] },
+  { emoji:"🎨", title:"After 12th — Arts", desc:"Design, Media, Psychology & more",
+    paths:["🖌️ BFA / B.Des — Fine Arts & Design","📰 BA Journalism / Mass Comm","🧠 BA Psychology","🌍 BA Political Science","🎬 Film & Media Studies","📚 BA English / Literature","👩‍🏫 B.Ed — Teaching","🗣️ BA Foreign Languages"] },
+  { emoji:"💡", title:"Skill-Based Paths", desc:"No degree needed — just start today",
+    paths:["🎨 UI/UX & Graphic Design","💻 Web Dev / Coding","📱 Digital Marketing","🎥 Content Creation","🤖 AI & Data Science","📸 Photography","✍️ Freelance Writing","📦 E-commerce"] },
+];
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = '';
+  });
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  onEnter(id);
+}
+
+function onEnter(id) {
+  if (id === 'mood') renderMoodGrid();
+  if (id === 'vent') initVent();
+  if (id === 'response') initResponse();
+  if (id === 'journal') renderJournal();
+  if (id === 'guidance') renderGuidance();
+  if (id === 'home') setTimeout(spawnGlitter, 50);
+  if (id === 'advisor') {}
+}
+
+// ── Splash ─────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  go('home');
+  setTimeout(() => {
+    const splash = document.getElementById('splash');
+    splash.classList.add('hide');
+    setTimeout(() => splash.remove(), 600);
+  }, 1800);
+});
+
+// ── Mood ───────────────────────────────────────────────────────────────────
+let selectedMoodIndex = null;
+function renderMoodGrid() {
+  selectedMoodIndex = null;
+  const grid = document.getElementById('moodGrid');
+  grid.innerHTML = '';
+  moods.forEach((m, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'mood-btn';
+    btn.id = 'moodBtn' + i;
+    btn.innerHTML = `<span class="mood-emoji">${m.emoji}</span><span class="mood-label">${m.label}</span>`;
+    btn.onclick = () => selectMood(i);
+    grid.appendChild(btn);
+  });
+  updateMoodContinue();
+}
+function selectMood(i) {
+  selectedMoodIndex = i;
+  document.querySelectorAll('.mood-btn').forEach((b,j) => {
+    b.classList.toggle('sel', j === i);
+  });
+  updateMoodContinue();
+}
+function updateMoodContinue() {
+  const btn = document.getElementById('moodContinue');
+  if (selectedMoodIndex !== null) {
+    btn.style.background = '#7c3aed'; btn.style.color = 'white';
+    btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+  } else {
+    btn.style.background = 'rgba(255,255,255,.04)'; btn.style.color = '#64748b';
+    btn.style.opacity = '.5'; btn.style.cursor = 'default';
+  }
+}
+function moodContinue() {
+  if (selectedMoodIndex === null) return;
+  state.mood = moods[selectedMoodIndex];
+  go('vent');
+}
+
+// ── Vent ───────────────────────────────────────────────────────────────────
+function initVent() {
+  const ta = document.getElementById('ventText');
+  ta.value = '';
+  ventUpdate();
+  // rotate placeholder
+  clearInterval(state.phInterval);
+  state.phIndex = 0;
+  ta.placeholder = placeholders[0];
+  state.phInterval = setInterval(() => {
+    state.phIndex = (state.phIndex + 1) % placeholders.length;
+    ta.placeholder = placeholders[state.phIndex];
+  }, 3200);
+  // mood badge
+  const badge = document.getElementById('moodBadge');
+  if (state.mood) badge.innerHTML = `${state.mood.emoji} <span style="color:#a5b4fc;font-size:13px">Feeling ${state.mood.label}</span>`;
+  else badge.innerHTML = '';
+  // breathe
+  hideBreathe();
+}
+function ventUpdate() {
+  const text = document.getElementById('ventText').value;
+  const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+  document.getElementById('ventWords').textContent = words + ' words';
+  document.getElementById('ventChars').textContent = text.length + '/1000';
+  document.getElementById('ventChars').style.color = text.length > 850 ? '#f87171' : '#64748b';
+  // encouragement
+  const encs = [
+    {min:1,msg:"🌱 It's okay to start small...",color:'#86efac'},
+    {min:20,msg:"💙 You're opening up. That takes courage.",color:'#93c5fd'},
+    {min:50,msg:"🌸 Let it all out. No judgment here.",color:'#f9a8d4'},
+    {min:100,msg:"🌟 Thank you for trusting this space.",color:'#fde68a'},
+  ];
+  const enc = [...encs].reverse().find(e => words >= e.min);
+  const encEl = document.getElementById('ventEnc');
+  if (enc && text.length > 0) {
+    encEl.style.display = 'block';
+    encEl.style.background = 'rgba(255,255,255,.03)';
+    encEl.style.borderLeftColor = enc.color;
+    encEl.innerHTML = `<span style="color:${enc.color};font-size:13px;font-style:italic">${enc.msg}</span>`;
+  } else {
+    encEl.style.display = 'none';
+  }
+  // prompts
+  document.getElementById('ventPrompts').style.display = text.length === 0 ? 'block' : 'none';
+  // submit button
+  const wrap = document.getElementById('ventSubmitWrap');
+  if (text.trim().length > 3) {
+    wrap.innerHTML = `<button class="grad-btn" onclick="submitVent()">I'm ready — hear me 💜</button>`;
+  } else {
+    wrap.innerHTML = `<div class="dim-btn">Start writing...</div>`;
+  }
+}
+function usePrompt(text) {
+  document.getElementById('ventText').value = text;
+  ventUpdate();
+}
+function submitVent() {
+  state.ventContent = document.getElementById('ventText').value;
+  clearInterval(state.phInterval);
+  go('response');
+}
+const breatheSteps = ["Breathe in... 🫁","Hold... ✨","Breathe out... 🌬️"];
+function showBreathe() {
+  document.getElementById('breatheBox').style.display = 'block';
+  document.getElementById('breatheTrigger').style.display = 'none';
+  state.breatheStep = 0;
+  document.getElementById('breatheText').textContent = breatheSteps[0];
+  clearInterval(state.breatheInterval);
+  state.breatheInterval = setInterval(() => {
+    state.breatheStep =(state.breatheStep + 1) % 3;
+    document.getElementById('breatheText').textContent = breatheSteps[state.breatheStep];
+  }, 3000);
+}
+function hideBreathe() {
+  clearInterval(state.breatheInterval);
+  document.getElementById('breatheBox').style.display = 'none';
+  document.getElementById('breatheTrigger').style.display = 'block';
+}
+
+// ── Response ───────────────────────────────────────────────────────────────
+async function initResponse() {
+  const affEl = document.getElementById('affirmation');
+  affEl.textContent = affirmations[Math.floor(Math.random() * affirmations.length)];
+  const replyEl = document.getElementById('aiReply');
+  replyEl.innerHTML = `<span style="color:#a5b4fc;font-size:13px;font-style:italic">Reading your words with care</span><span class="loading-dots"><span class="loading-dot" style="animation-delay:0s"></span><span class="loading-dot" style="animation-delay:.2s"></span><span class="loading-dot" style="animation-delay:.4s"></span></span>`;
+  const sys = `You are a warm, empathetic mental health companion for Indian students aged 16-22. A student is feeling ${state.mood?.label || "overwhelmed"} and has shared something personal. Respond with genuine empathy, validation, and gentle encouragement. Keep it conversational and warm — not clinical. 3-4 sentences max. End with one small actionable thing they can do right now. Use occasional emojis naturally.`;
+  try {
+    const text = await callClaude([{role:"user", content: state.ventContent || "I just needed someone to listen."}], sys);
+    replyEl.textContent = text;
+  } catch {
+    replyEl.textContent = "I hear you, and what you're feeling is completely valid. You were brave to say it out loud. Take a breath — you don't have to figure everything out today. 💜";
+  }
+}
+
+// ── Journal ────────────────────────────────────────────────────────────────
+function getJournalEntries() {
+  try { return JSON.parse(localStorage.getItem(JOURNAL_KEY)) || []; } catch { return []; }
+}
+function journalTab(tab) {
+  state.journalView = tab;
+  document.getElementById('tabWrite').classList.toggle('active', tab === 'write');
+  document.getElementById('tabEntries').classList.toggle('active', tab === 'entries');
+  document.getElementById('journalWrite').style.display = tab === 'write' ? 'block' : 'none';
+  document.getElementById('journalEntries').style.display = tab === 'entries' ? 'block' : 'none';
+  if (tab === 'entries') renderEntries();
+}
+function renderJournal() {
+  journalTab('write');
+  document.getElementById('journalText').value = '';
+  journalUpdate();
+  const entries = getJournalEntries();
+  document.getElementById('tabEntries').textContent = `📋 Entries${entries.length > 0 ? ` (${entries.length})` : ''}`;
+}
+function journalUpdate() {
+  const text = document.getElementById('journalText').value;
+  const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+  document.getElementById('journalWords').textContent = words + ' words';
+  document.getElementById('journalChars').textContent = text.length + '/2000';
+  const wrap = document.getElementById('journalSaveBtnWrap');
+  if (text.trim().length > 3) {
+    wrap.innerHTML = `<button class="grad-btn" onclick="saveJournal()">Save Entry 💜</button>`;
+  } else {
+    wrap.innerHTML = `<div class="dim-btn">Start writing to save...</div>`;
+  }
+}
+function saveJournal() {
+  const text = document.getElementById('journalText').value.trim();
+  if (text.length < 3) return;
+  const now = new Date();
+  const entry = {
+    text, id: Date.now(),
+    date: now.toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}),
+    time: now.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'}),
+  };
+  const entries = [entry, ...getJournalEntries()];
+  try { localStorage.setItem(JOURNAL_KEY, JSON.stringify(entries)); } catch {}
+  document.getElementById('journalText').value = '';
+  journalUpdate();
+  journalTab('entries');
+  document.getElementById('tabEntries').textContent = `📋 Entries (${entries.length})`;
+}
+function renderEntries() {
+  const entries = getJournalEntries();
+  const el = document.getElementById('journalEntries');
+  if (entries.length === 0) {
+    el.innerHTML = `<div style="text-align:center;padding-top:40px"><div style="font-size:48px;margin-bottom:14px">🌙</div><div style="color:#64748b;font-size:14px;margin-bottom:20px">No entries yet. Start writing!</div><button onclick="journalTab('write')" style="background:#1e1b4b;border:1px solid #4c1d95;border-radius:16px;padding:12px 28px;color:#a5b4fc;font-weight:600;font-size:14px;cursor:pointer">Write now →</button></div>`;
+    return;
+  }
+  el.innerHTML = entries.map(e => `
+    <div class="journal-entry">
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+        <span style="color:#7c3aed;font-size:12px;font-weight:600">${e.date}</span>
+        <span style="color:#64748b;font-size:12px">${e.time}</span>
+      </div>
+      <div style="color:#94a3b8;font-size:13px;line-height:1.7;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical">${e.text}</div>
+    </div>
+  `).join('');
+}
+
+// ── Guidance ───────────────────────────────────────────────────────────────
+function renderGuidance() {
+  const el = document.getElementById('guidanceTopics');
+  el.innerHTML = '';
+  guidanceTopics.forEach((topic, i) => {
+    const div = document.createElement('div');
+    div.className = 'guidance-topic';
+    div.innerHTML = `
+      <button class="topic-header" onclick="toggleTopic(${i})">
+        <div style="display:flex;align-items:center;gap:14px">
+          <span style="font-size:26px">${topic.emoji}</span>
+          <div style="text-align:left">
+            <div style="color:#e2e8f0;font-size:15px;font-weight:bold;margin-bottom:2px">${topic.title}</div>
+            <div style="color:#64748b;font-size:12px">${topic.desc}</div>
+          </div>
+        </div>
+        <span id="topicArrow${i}" style="color:#64748b;font-size:12px">▼</span>
+      </button>
+      <div id="topicPaths${i}" style="display:none" class="topic-paths">
+        ${topic.paths.map(p => `<div class="path-item">${p}</div>`).join('')}
+        <div style="color:#64748b;font-size:12px;margin-top:14px;font-style:italic">💡 Research each path — eligibility and exams vary.</div>
+      </div>
+    `;
+    el.appendChild(div);
+  });
+}
+function toggleTopic(i) {
+  const paths = document.getElementById('topicPaths' + i);
+  const arrow = document.getElementById('topicArrow' + i);
+  const open = paths.style.display !== 'none';
+  // close all
+  guidanceTopics.forEach((_, j) => {
+    document.getElementById('topicPaths' + j).style.display = 'none';
+    document.getElementById('topicArrow' + j).textContent = '▼';
+  });
+  if (!open) {
+    paths.style.display = 'block';
+    arrow.textContent = '▲';
+  }
+  }// ── Advisor ────────────────────────────────────────────────────────────────
+const ADVISOR_SYS = `Your name is Ruhi. You are not an AI assistant — you are Ruhi, a warm, soulful guide and friend to Indian students aged 16-22 who feel lost after 12th grade. You speak gently, like a caring older sister who truly gets them.
+
+CRITICAL IDENTITY RULE: If anyone asks "are you Ruhi?", "r u ruhi?", "who are you?", "are you an AI?", "are you Claude?" — always say yes, you are Ruhi. Never say you are Claude or an AI. Never break character. You are Ruhi, always.
+
+Your job: ask thoughtful questions to understand their stream, interests, strengths, and dreams — then suggest 2-3 career paths that truly feel right for them. Keep replies short, warm, conversational. After 3-4 exchanges give specific recommendations. Mention JEE, NEET, entrance exams where relevant. Use occasional emojis naturally. Sign off with warmth.`;
+
+async function startAdvisor() {
+  document.getElementById('advisorStart').style.display = 'none';
+  document.getElementById('chatLog').style.display = 'block';
+  document.getElementById('advisorInputBar').style.display = 'flex';
+  state.chatHistory = [{role:"user", content:"Hi, I need career guidance after 12th."}];
+  state.chatLoading = true;
+  showTyping();
+  try {
+    const reply = await callClaude(state.chatHistory, ADVISOR_SYS);
+    state.chatHistory.push({role:"assistant", content:reply});
+    removeTyping();
+    appendMsg('assistant', reply);
+  } catch {
+    removeTyping();
+    appendMsg('assistant', "Hey! I'm here to help you find the right path. 😊 What stream are you from — Science, Commerce, or Arts?");
+    state.chatHistory.push({role:"assistant", content:"Hey! I'm here to help you find the right path. 😊 What stream are you from — Science, Commerce, or Arts?"});
+  }
+  state.chatLoading = false;
+  updateSendBtn();
+}
+function appendMsg(role, text) {
+  const log = document.getElementById('chatLog');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap ' + role;
+  if (role === 'assistant') wrap.innerHTML = `<span style="font-size:18px;flex-shrink:0">🌙</span><div class="msg-bubble assistant">${escHtml(text)}</div>`;
+  else wrap.innerHTML = `<div class="msg-bubble user">${escHtml(text)}</div>`;
+  log.appendChild(wrap);
+  wrap.scrollIntoView({behavior:'smooth'});
+}
+function showTyping() {
+  const log = document.getElementById('chatLog');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap assistant'; wrap.id = 'typingWrap';
+  wrap.innerHTML = `<span style="font-size:18px;flex-shrink:0">🌙</span><div class="msg-bubble assistant"><div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot" style="animation-delay:.2s"></div><div class="typing-dot" style="animation-delay:.4s"></div></div></div>`;
+  log.appendChild(wrap);
+  wrap.scrollIntoView({behavior:'smooth'});
+}
+function removeTyping() {
+  const t = document.getElementById('typingWrap');
+  if (t) t.remove();
+}
+async function sendMsg() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text || state.chatLoading) return;
+  input.value = ''; updateSendBtn();
+  appendMsg('user', text);
+  state.chatHistory.push({role:"user", content:text});
+  state.chatLoading = true;
+  showTyping();
+  try {
+    const reply = await callClaude(state.chatHistory, ADVISOR_SYS);
+    state.chatHistory.push({role:"assistant", content:reply});
+    removeTyping(); appendMsg('assistant', reply);
+  } catch {
+    removeTyping(); appendMsg('assistant', "Sorry, connection issue. Try again? 💜");
+  }
+  state.chatLoading = false;
+  updateSendBtn();
+}
+function updateSendBtn() {
+  const btn = document.getElementById('sendBtn');
+  const val = document.getElementById('chatInput')?.value.trim();
+  if (btn) {
+    if (val && !state.chatLoading) { btn.classList.add('active'); btn.classList.remove('inactive'); }
+    else { btn.classList.remove('active'); btn.classList.add('inactive'); }
+  }
+}
+
+// ── Claude API ─────────────────────────────────────────────────────────────
+async function callClaude(messages, system) {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, system, messages }),
+  });
+  const data = await res.json();
+  return data.content?.[0]?.text || "I'm here with you. 💜";
+}
+
+// ── Angel Glitter ─────────────────────────────────────────────────────────
+function spawnGlitter() {
+  const container = document.getElementById('glitterContainer');
+  if (!container) return;
+  container.innerHTML = '';
+  const glitters = [
+    // sparkles from wand tip (top right area ~138,52 in svg coords, scaled)
+    {x:128,y:30,tx:20,ty:-40,color:'#fde68a',size:6,dur:1.8,delay:0},
+    {x:135,y:22,tx:35,ty:-30,color:'#f9a8d4',size:5,dur:2.1,delay:0.3},
+    {x:142,y:35,tx:15,ty:-50,color:'#c4b5fd',size:7,dur:1.6,delay:0.6},
+    {x:125,y:40,tx:-10,ty:-45,color:'#fde68a',size:4,dur:2.4,delay:0.1},
+    {x:148,y:28,tx:25,ty:-35,color:'#86efac',size:5,dur:1.9,delay:0.8},
+    {x:138,y:18,tx:10,ty:-55,color:'#f9a8d4',size:6,dur:2.2,delay:0.4},
+    // hearts from left hand
+    {x:32,y:118,tx:-20,ty:-30,color:'#f9a8d4',size:8,dur:2.5,delay:0.2,heart:true},
+    {x:40,y:125,tx:-30,ty:-20,color:'#c4b5fd',size:7,dur:2.8,delay:0.9,heart:true},
+    {x:28,y:130,tx:-10,ty:-40,color:'#fce4d6',size:6,dur:2.3,delay:1.4,heart:true},
+    // random ambient sparkles
+    {x:60,y:55,tx:-15,ty:-25,color:'#fde68a',size:4,dur:3,delay:0.5},
+    {x:95,y:50,tx:18,ty:-28,color:'#c4b5fd',size:3,dur:2.7,delay:1.1},
+    {x:50,y:90,tx:-20,ty:-20,color:'#f9a8d4',size:4,dur:2.9,delay:0.7},
+    {x:110,y:95,tx:22,ty:-18,color:'#86efac',size:3,dur:3.2,delay:1.5},
+  ];
+  glitters.forEach(g => {
+    const el = document.createElement('div');
+    el.className = 'glitter';
+    el.style.cssText = `
+      left:${g.x}px;top:${g.y}px;
+      width:${g.size}px;height:${g.size}px;
+      background:${g.color};
+      --tx:${g.tx}px;--ty:${g.ty}px;
+      --dur:${g.dur}s;--delay:${g.delay}s;
+      box-shadow:0 0 ${g.size*2}px ${g.color};
+    `;
+    if (g.heart) {
+      el.style.background = 'none';
+      el.style.fontSize = g.size + 'px';
+      el.style.width = 'auto';
+      el.style.height = 'auto';
+      el.style.borderRadius = '0';
+      el.textContent = '💜';
+    }
+    container.appendChild(el);
+  });
+}
+// init glitter when home loads
+window.addEventListener('load', () => { setTimeout(spawnGlitter, 200); });
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+</script>
+</body>
+</html>
